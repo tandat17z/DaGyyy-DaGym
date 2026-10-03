@@ -24,8 +24,8 @@ This repository is public. Before every commit:
 
 - **No infrastructure in tracked files**: no real hostnames or URLs of the hub or API, no Cloudflare
   account / database / Access ids, no user emails. Use env vars, placeholders (`https://<api-host>`)
-  or generic words. Real values go in git-ignored files: `CLAUDE.local.md`, `.env.production.local`,
-  `wrangler.jsonc` (from `wrangler.example.jsonc`), `.claude/dev-real/`.
+  or generic words. Real values go in git-ignored files or the Cloudflare dashboard: `CLAUDE.local.md`,
+  `.env.production.local`, Workers Builds / Worker variables, `.claude/dev-real/`.
 - Allowed exception: the live app URL, in README only. Never the API or hub hosts.
 - **No secrets anywhere**, not even in examples. Anything `VITE_*` is public.
 

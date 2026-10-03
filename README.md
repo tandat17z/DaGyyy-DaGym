@@ -52,8 +52,9 @@ anything prefixed `VITE_` ends up in the browser bundle.
 
 ## Deploy
 
-Copy `wrangler.example.jsonc` to `wrangler.jsonc` (git-ignored) and set the API host. One time, in
-the API repo (see its README, section "gym"):
+Cloudflare Workers Builds deploys every push to `main` (build `npm run build`, deploy
+`npx wrangler deploy`); `wrangler.jsonc` holds no hosts. One time, in the API repo (see its README,
+section "gym"):
 
 1. `npx wrangler d1 create gym`, then uncomment the `DB_GYM` block under `[env.production]` in
    `wrangler.toml` with the printed id.
