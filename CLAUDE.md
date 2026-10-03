@@ -13,10 +13,12 @@ git-ignored — read it when present.
   approved users on the server, everyone else in the browser, with a request for server storage.
 
 It can be launched from a Workspace hub (`VITE_WORKSPACE_URL`, header "← Workspace"; hidden when unset).
-The header shows the shared `<tdz-account>` menu (`public/account.js`, canonical copy in the hub repo);
+The header shows the shared `<tdz-account>` menu (`@tada/kit/account-menu`, imported in `main.tsx`);
 its `account-url` shows where data is stored and sends the storage request.
 
 Never import code, types or env vars from sibling repos: the API is used over HTTP only, `src/lib/types.ts` mirrors its contract.
+The one exception is **`@tada/kit`** (public repo `tandat17z/tada-kit`, pinned by git tag in `package.json`):
+i18n, brand, account gate + menu, the `/api` proxy and the colour tokens. Change shared code there, tag it, then bump the tag here.
 
 ## Public repository rules
 
@@ -36,10 +38,10 @@ This repository is public. Before every commit:
 
 ## Tech stack
 
-- Vite + React 19 + TS + Tailwind v4, react-router-dom 7, Geist fonts. Charts are plain HTML/CSS. Dark only; tokens in `src/index.css` copied from the hub.
-- `src/i18n/` and `src/brand/` are copied as-is from DaFinance; `public/account.js` from the hub.
+- Vite + React 19 + TS + Tailwind v4, react-router-dom 7, Geist fonts. Charts are plain HTML/CSS. Dark only; colour tokens from `@tada/kit/tokens.css` (imported in `src/index.css`).
+- Language (`@tada/kit/i18n`, instance in `src/locales/index.ts`), `AppBrand` (`@tada/kit/brand`) and `AccountGate` (`@tada/kit/account`) come from the kit.
 - Data: every read and write goes through the current `GymStore` (`src/lib/storage.ts`: cached GET hooks + writes that `invalidate()` prefixes). `serverStore` calls the API (`src/lib/api.ts`); `localStore(email)` answers the same `/v1/gym` paths from localStorage (`src/lib/localApi.ts`, `dagym.u.<email>.*`, same maths as the API). `AccountGate` reads `GET /v1/gym/account` (`src/lib/account.ts`) and selects the store: `cloud` → server, `local` → browser, `readonly` (revoked) → server data copied into the browser once (`src/lib/sync.ts`). `StorageNotice` asks for server storage and, after approval, moves browser data up with `POST /v1/gym/import`. The API enforces all of this; the frontend only follows it.
-- Hosted: `worker/index.js` forwards only `/api/health` and `/api/v1/gym/*` to the API Worker (service binding) with the Access JWT.
+- Hosted: `worker/index.js` (`createApiProxy` from `@tada/kit/proxy`) forwards only `/api/health` and `/api/v1/gym/*` to the API Worker (service binding) with the Access JWT, and refuses cross-site writes.
 - Security: no tokens or secrets in the frontend; React escaping only (no `innerHTML` with data); `public/_headers` sets CSP, `X-Frame-Options`, `noindex`.
 - Exercise dictionary: `public/data/exercises.json`, built by `npm run exercises` from free-exercise-db pinned to one commit; images served by jsDelivr. Custom exercises live in the store.
 - Live workout: `src/lib/session.ts` (context, hooks) + `src/components/SessionProvider.tsx` — kept in localStorage (`dagym.session`, per browser account `dagym.session.u.<email>`), timers stored as timestamps, debounced PUT autosave, rest alarm (beep + vibrate), screen wake lock.

@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { AppBrand } from '../brand'
+import { AppBrand } from '@tada/kit/brand'
 import { changelog } from '../config/changelog'
 import { API_ACCOUNT_URL, API_ME_URL, STANDALONE } from '../lib/api'
 import { invalidate } from '../lib/storage'
