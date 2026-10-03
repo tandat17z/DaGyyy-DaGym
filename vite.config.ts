@@ -2,9 +2,10 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv } from 'vite'
 
-// Static SPA → dist/, deployed as Workers static assets (wrangler.jsonc) → gym.tandat17z.workers.dev.
+// Static SPA → dist/, deployed as Workers static assets (wrangler.jsonc).
 //
-// Local data source is chosen by the Vite mode (see "Local data" in CLAUDE.md):
+// Data source is chosen by the Vite mode (see "Modes" in CLAUDE.md):
+//   --mode standalone  .env.standalone  frontend :5176, no API: everything in this browser
 //   --mode demo  .env.demo  frontend :5176 → API :8787 (local sample DB), called cross-origin
 //   --mode real  .env.real  frontend :5177 → /api proxied to the API on :8789 (REAL production data)
 export default defineConfig(({ mode }) => {

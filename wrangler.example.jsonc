@@ -1,4 +1,5 @@
 // Cloudflare Workers static assets: serves the Vite build in ./dist.
+// Copy to wrangler.jsonc (git-ignored) and set the real API host before `npx wrangler deploy`.
 // Build: `npm run build`, deploy: `npx wrangler deploy`. Protect the workers.dev URL with Access.
 // /api/* runs worker/index.js, which forwards to the central API Worker (service binding) so the
 // app needs a single Access login. Everything else is served straight from ./dist.
@@ -16,5 +17,5 @@
     "run_worker_first": ["/api/*"]
   },
   "services": [{ "binding": "API", "service": "api" }],
-  "vars": { "API_PUBLIC_URL": "https://api.tandat17z.workers.dev" }
+  "vars": { "API_PUBLIC_URL": "https://<api-host>" }
 }

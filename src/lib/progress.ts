@@ -1,4 +1,4 @@
-import type { PlanItem, SetValues, Template, TrackingType, Workout } from './types'
+import type { SetValues, Template, TrackingType, Workout } from './types'
 
 // Progress of workouts and templates. There is no fixed schedule: a template is a "workout day"
 // of the programme, and the calendar only shows what was actually trained.
@@ -64,4 +64,18 @@ export function estimateSec(items: Pick<DayItem, 'trackingType' | 'restSec' | 's
 export function nextSetIndex(item: Pick<DayItem, 'sets'>): number | null {
   const i = item.sets.findIndex((s) => !s.done)
   return i < 0 ? null : i
+}
+
+/**
+ * The workout day to train now (one rule for the dashboard and the workout tab): the day of the
+ * workout in progress; else a day trained today but not finished (under 100 %); else the next one.
+ * `today` = the day was trained today (show "Today" rather than "Next").
+ */
+export function currentDay(days: Template[], workouts: Workout[], todayIso: string, live: Workout | null): { day: Template | undefined; today: boolean } {
+  const ids = new Set(days.map((d) => d.id))
+  const inProgram = (w: Workout | null | undefined) => !!w?.templateId && ids.has(w.templateId)
+  if (live && inProgram(live)) return { day: days.find((d) => d.id === live.templateId), today: true }
+  const todays = workouts.find((w) => w.date === todayIso && inProgram(w))
+  if (todays && workoutProgress(todays) < 1) return { day: days.find((d) => d.id === todays.templateId), today: true }
+  return { day: nextTemplate(days, workouts), today: false }
 }

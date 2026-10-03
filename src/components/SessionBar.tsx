@@ -7,7 +7,8 @@ import { IconChevronRight, IconTimer } from './icons'
 
 /**
  * Floating bar above the bottom navigation: the rest countdown (with −15 / +15 / skip) whenever a
- * rest runs, otherwise a "workout in progress" link on pages other than the workout itself.
+ * rest runs, otherwise a "workout in progress" link on pages other than the workout itself. On the
+ * pages of the exercises of the workout the rest shows in their rest ring instead.
  */
 export function SessionBar() {
   const { t } = useI18n()
@@ -16,7 +17,7 @@ export function SessionBar() {
   const now = useNow(!!workout, rest ? 200 : 1000)
   if (!workout) return null
 
-  if (rest) {
+  if (rest && !/^\/workout\/\d+$/.test(pathname)) {
     const left = Math.max(0, (rest.endsAt - now) / 1000)
     const over = left <= 0
     const pct = over ? 100 : Math.min(100, 100 - (left / rest.totalSec) * 100)
@@ -45,7 +46,7 @@ export function SessionBar() {
     )
   }
 
-  if (pathname === '/workout') return null
+  if (rest || pathname.startsWith('/workout')) return null
   return (
     <div className="pointer-events-auto mx-auto w-full max-w-xl px-3">
       <Link to="/workout" className="flex items-center gap-3 rounded-2xl border border-accent/50 bg-surface-2 px-4 py-2.5 shadow-2xl shadow-black/50 hover:border-accent">

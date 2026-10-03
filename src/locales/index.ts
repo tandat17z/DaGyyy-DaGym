@@ -4,6 +4,6 @@ import { vi } from './vi'
 
 export const { I18nProvider, useI18n, LanguageSwitch } = createI18n({
   messages: { en, vi },
-  defaultLocale: 'vi',
+  defaultLocale: 'en',
   storageKey: 'dagym.lang',
 })

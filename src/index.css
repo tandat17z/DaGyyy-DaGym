@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-/* Design tokens shared with the Workspace hub (me.tandat17z.com). Dark only for now. */
+/* Design tokens shared with the Workspace hub. Dark only for now. */
 :root {
   color-scheme: dark;
 
@@ -64,6 +64,13 @@
 }
 
 @layer base {
+  /* Nothing may scroll the page sideways on a phone (wide chips, slide-in animations). `clip`, not
+     `hidden`, so the sticky header keeps working. */
+  html,
+  body {
+    overflow-x: clip;
+  }
+
   body {
     background-color: var(--bg);
     color: var(--fg);
@@ -96,6 +103,20 @@
     .field {
       font-size: 16px;
     }
+  }
+}
+
+/* Exercise pages of a workout day slide in from the side they were swiped from. */
+@keyframes dagym-from-right {
+  from {
+    opacity: 0;
+    transform: translateX(2.5rem);
+  }
+}
+@keyframes dagym-from-left {
+  from {
+    opacity: 0;
+    transform: translateX(-2.5rem);
   }
 }
 

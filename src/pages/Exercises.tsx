@@ -4,7 +4,7 @@ import { ApiNotice } from '../components/ApiNotice'
 import { BarChart } from '../components/charts'
 import { ExerciseImage } from '../components/ExerciseImage'
 import { IconChevronLeft, IconEdit, IconPlus, IconSearch, IconTrash } from '../components/icons'
-import { PageHeader } from '../components/Layout'
+import { SectionHeader } from '../components/Layout'
 import { MuscleMap } from '../components/MuscleMap'
 import { Button, Card, Chip, Empty, Label, Sheet, Skeleton, StatTile } from '../components/ui'
 import { CATEGORIES, EQUIPMENT, LEVELS, MUSCLES, TRACKING_TYPES } from '../config/muscles'
@@ -14,7 +14,7 @@ import { searchable, useExercises } from '../lib/exercises'
 import { useFormat } from '../lib/format'
 import { e1rm, loggedExerciseFor, planItemFor } from '../lib/plan'
 import { useSession } from '../lib/session'
-import { deleteCustomExercise, saveCustomExercise, saveTemplate, useExerciseHistory, useTemplates } from '../lib/storage'
+import { deleteCustomExercise, saveCustomExercise, saveTemplate, useExerciseHistory, usePrograms, useTemplates } from '../lib/storage'
 import type { CustomExerciseInput, Exercise, TrackingType } from '../lib/types'
 import { useI18n } from '../locales'
 
@@ -27,7 +27,8 @@ export function Exercises() {
   const [params, setParams] = useSearchParams()
   const [limit, setLimit] = useState(PAGE)
   const [creating, setCreating] = useState(false)
-  const [showMap, setShowMap] = useState(true)
+  // The muscle map is big: open by default on wide screens only.
+  const [showMap, setShowMap] = useState(() => matchMedia('(min-width: 1024px)').matches)
   const q = params.get('q') ?? ''
   const muscle = params.get('muscle')
   const equipment = params.get('equipment') ?? ''
@@ -60,8 +61,8 @@ export function Exercises() {
 
   return (
     <>
-      <PageHeader
-        title={t('exercises.title')}
+      <SectionHeader
+        section="train"
         sub={loading ? t('common.loading') : t('exercises.count', { count: matches.length })}
         actions={
           <Button variant="primary" onClick={() => setCreating(true)}>
@@ -309,6 +310,7 @@ function Detail({ exercise: e }: { exercise: Exercise }) {
   const navigate = useNavigate()
   const history = useExerciseHistory(e.id)
   const templates = useTemplates()
+  const programs = usePrograms()
   const session = useSession()
   const [adding, setAdding] = useState(false)
   const [editing, setEditing] = useState(false)
@@ -485,6 +487,7 @@ function Detail({ exercise: e }: { exercise: Exercise }) {
               }
               className={cn('rounded-lg border border-border px-3 py-2.5 text-left text-sm hover:border-border-strong')}
             >
+              {(programs.data?.length ?? 0) > 1 && <span className="text-subtle">{programs.data?.find((p) => p.id === tpl.programId)?.name} · </span>}
               {tpl.name}
               <span className="ml-2 text-xs text-subtle">{t('today.summary', { count: tpl.items.length, sets: tpl.items.reduce((n, i) => n + i.sets.length, 0) })}</span>
             </button>

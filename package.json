@@ -4,13 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --mode demo",
+    "dev": "vite --mode standalone",
     "dev:demo": "vite --mode demo",
     "dev:real": "vite --mode real",
     "api:demo": "npm --prefix ../api run dev -- --port 8787",
+    "api:guest": "npm --prefix ../api run dev -- --port 8787 --var DEV_ADMIN_EMAIL:guest@example.com --var ADMIN_EMAILS:owner@example.com",
     "api:real": "npm --prefix ../api exec -- wrangler dev -c ../DaGym/.claude/dev-real/wrangler.toml --port 8789",
     "exercises": "node scripts/build-exercises.mjs",
     "build": "tsc -b && vite build",
+    "build:standalone": "tsc -b && vite build --mode standalone",
     "lint": "oxlint",
     "preview": "vite preview"
   },

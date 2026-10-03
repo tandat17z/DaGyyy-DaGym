@@ -10,6 +10,13 @@ async function handle(request, env) {
   const url = new URL(request.url);
   if (url.pathname !== "/api" && !url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
 
+  // Least privilege: once this app is shared, strangers hold a valid Access JWT for this host, so
+  // only forward what the app itself calls (the API still checks every request on its own).
+  const path = url.pathname.slice("/api".length);
+  if (path !== "/health" && !path.startsWith("/v1/gym/")) {
+    return Response.json({ error: { code: "not_found", message: "Not found" } }, { status: 404 });
+  }
+
   // Keep the API's public origin in the URL so it builds correct absolute links (e.g. media).
   const target = new URL(url.pathname.slice("/api".length) || "/", env.API_PUBLIC_URL);
   target.search = url.search;

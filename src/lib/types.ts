@@ -57,8 +57,19 @@ export interface PlanItem {
 
 export type ColorKey = 'c1' | 'c2' | 'c3' | 'c4' | 'c5' | 'c6' | 'c7' | 'c8'
 
+/** A named list of workout days (templates), trained in order on any date. */
+export interface Program {
+  id: string
+  name: string
+  note: string
+  color: ColorKey
+  position: number
+}
+
+/** One workout day of a program. */
 export interface Template {
   id: string
+  programId: string | null
   name: string
   note: string
   color: ColorKey

@@ -1,9 +1,106 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "gym", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev:demo"], "port": 5176 },
-    { "name": "api", "runtimeExecutable": "npm", "runtimeArgs": ["run", "api:demo"], "port": 8787 },
-    { "name": "gym-real", "runtimeExecutable": "npm", "runtimeArgs": ["run", "dev:real"], "port": 5177 },
-    { "name": "api-real", "runtimeExecutable": "npm", "runtimeArgs": ["run", "api:real"], "port": 8789 }
+    {
+      "name": "gym",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:demo"
+      ],
+      "port": 5176
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "api:demo"
+      ],
+      "port": 8787
+    },
+    {
+      "name": "gym-real",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev:real"
+      ],
+      "port": 5177
+    },
+    {
+      "name": "api-real",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "api:real"
+      ],
+      "port": 8789
+    },
+    {
+      "name": "api-check",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "../api",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "8792",
+        "--ip",
+        "127.0.0.1"
+      ],
+      "port": 8792
+    },
+    {
+      "name": "gym-check",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--mode",
+        "demo",
+        "--port",
+        "5179",
+        "--strictPort"
+      ],
+      "port": 5179,
+      "env": {
+        "VITE_API_URL": "http://localhost:8792"
+      }
+    },
+    {
+      "name": "gym-standalone",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": [
+        "vite",
+        "--mode",
+        "standalone",
+        "--port",
+        "5180",
+        "--strictPort"
+      ],
+      "port": 5180
+    },
+    {
+      "name": "api-guest-check",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "../api",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "8792",
+        "--ip",
+        "127.0.0.1",
+        "--var",
+        "DEV_ADMIN_EMAIL:guest@example.com",
+        "--var",
+        "ADMIN_EMAILS:owner@example.com"
+      ],
+      "port": 8792
+    }
   ]
 }

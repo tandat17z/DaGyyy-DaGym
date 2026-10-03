@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ApiNotice } from '../components/ApiNotice'
 import { type Bar, BarChart, HeatCalendar, RankBars } from '../components/charts'
 import { IconChevronLeft, IconChevronRight, IconFlame } from '../components/icons'
-import { PageHeader } from '../components/Layout'
+import { SectionHeader } from '../components/Layout'
 import { MuscleMap } from '../components/MuscleMap'
 import { Card, IconButton, Tabs, StatTile } from '../components/ui'
 import { addDays, addMonths, eachDay, type PeriodUnit, periodRange, shiftPeriod, startOfWeek, todayIso } from '../lib/date'
@@ -86,7 +86,7 @@ export function Stats() {
 
   return (
     <>
-      <PageHeader title={t('stats.title')} />
+      <SectionHeader section="progress" />
       {(stats.error ?? year.error) && <ApiNotice error={(stats.error ?? year.error)!} onRetry={stats.reload} />}
 
       <div className="flex flex-wrap items-center gap-2">

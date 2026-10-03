@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { TRACKING_TYPES } from '../config/muscles'
 import { cn } from '../lib/cn'
 import { clock, useFormat } from '../lib/format'
+import { REST_OPTIONS } from '../lib/plan'
 import type { Exercise, SetValues, TrackingType } from '../lib/types'
 import { useI18n } from '../locales'
 import { ExerciseImage } from './ExerciseImage'
@@ -12,7 +13,6 @@ import { Button, IconButton, Label, NumberInput, Sheet } from './ui'
 // One exercise of a plan (targets only) or of a workout being logged (✓ per set, previous values,
 // set stopwatch, record badges). PlanEditor and WorkoutEditor map their own data onto it.
 
-const REST_OPTIONS = [0, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300]
 
 export interface BlockSet extends SetValues {
   done?: boolean
@@ -209,10 +209,12 @@ export function ExerciseOptions({
   trackingType: TrackingType
   note: string
   onChange: (patch: { restSec?: number; trackingType?: TrackingType; note?: string }) => void
-  onMove: (delta: -1 | 1) => void
-  onRemove: () => void
-  canMoveUp: boolean
-  canMoveDown: boolean
+  /** Without it (lists reordered by dragging) there are no move buttons. */
+  onMove?: (delta: -1 | 1) => void
+  /** Without it (a delete button sits next to the exercise) there is no remove button. */
+  onRemove?: () => void
+  canMoveUp?: boolean
+  canMoveDown?: boolean
 }) {
   const { t } = useI18n()
   const { formatSeconds, trackingName } = useFormat()
@@ -255,29 +257,37 @@ export function ExerciseOptions({
         <Label text={t('block.note')}>
           <textarea value={note} onChange={(e) => onChange({ note: e.target.value.slice(0, 500) })} rows={2} className="field resize-none" placeholder={t('block.notePlaceholder')} />
         </Label>
-        <div className="flex flex-wrap gap-2">
-          <Button disabled={!canMoveUp} onClick={() => onMove(-1)}>
-            <IconUp className="size-4" />
-            {t('block.moveUp')}
-          </Button>
-          <Button disabled={!canMoveDown} onClick={() => onMove(1)}>
-            <IconDown className="size-4" />
-            {t('block.moveDown')}
-          </Button>
-          <Button
-            variant="danger"
-            className="ml-auto"
-            onClick={() => {
-              if (!confirm) return setConfirm(true)
-              setConfirm(false)
-              onRemove()
-              onClose()
-            }}
-          >
-            <IconTrash className="size-4" />
-            {confirm ? t('block.removeConfirm') : t('block.remove')}
-          </Button>
-        </div>
+        {(onMove || onRemove) && (
+          <div className="flex flex-wrap gap-2">
+            {onMove && (
+              <>
+                <Button disabled={!canMoveUp} onClick={() => onMove(-1)}>
+                  <IconUp className="size-4" />
+                  {t('block.moveUp')}
+                </Button>
+                <Button disabled={!canMoveDown} onClick={() => onMove(1)}>
+                  <IconDown className="size-4" />
+                  {t('block.moveDown')}
+                </Button>
+              </>
+            )}
+            {onRemove && (
+              <Button
+                variant="danger"
+                className="ml-auto"
+                onClick={() => {
+                  if (!confirm) return setConfirm(true)
+                  setConfirm(false)
+                  onRemove()
+                  onClose()
+                }}
+              >
+                <IconTrash className="size-4" />
+                {confirm ? t('block.removeConfirm') : t('block.remove')}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
     </Sheet>
   )

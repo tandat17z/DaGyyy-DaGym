@@ -15,10 +15,10 @@ export function useStartWorkout() {
   const session = useSession()
   const { byId } = useExercises()
   const navigate = useNavigate()
-  return (opts: { date?: string; name: string; templateId?: string | null; items: PlanItem[] }, to: string | null = '/workout') => {
+  return (opts: { date?: string; name: string; templateId?: string | null; items: PlanItem[] }, to: string | null = '/workout', state?: unknown) => {
     if (session.workout && !window.confirm(t('session.replaceConfirm'))) return false
     session.start(newWorkout({ date: opts.date ?? todayIso(), name: opts.name, templateId: opts.templateId, items: opts.items, byId }))
-    if (to) navigate(to, { replace: to.startsWith('/workout/') })
+    if (to) navigate(to, { replace: to.startsWith('/workout/'), state })
     return true
   }
 }

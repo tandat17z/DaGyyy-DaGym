@@ -1,5 +1,8 @@
 import type { Exercise, ExerciseStats, LoggedExercise, LoggedSet, PlanItem, Records, SetValues, TrackingType, Workout } from './types'
 
+/** Rest times offered after a set, in seconds (0 = no rest timer). */
+export const REST_OPTIONS = [0, 30, 45, 60, 75, 90, 120, 150, 180, 240, 300]
+
 /** Default targets for an exercise added to a plan. */
 export function defaultSets(type: TrackingType, count = 3): SetValues[] {
   const one: SetValues = type === 'time' ? { seconds: 30 } : type === 'distance_time' ? { distance: null, seconds: 600 } : { reps: 10, weight: null }
@@ -7,7 +10,7 @@ export function defaultSets(type: TrackingType, count = 3): SetValues[] {
 }
 
 export function planItemFor(e: Exercise): PlanItem {
-  return { exerciseId: e.id, restSec: e.trackingType === 'distance_time' ? 0 : 90, note: '', sets: defaultSets(e.trackingType) }
+  return { exerciseId: e.id, restSec: e.trackingType === 'distance_time' ? 0 : 60, note: '', sets: defaultSets(e.trackingType) }
 }
 
 export function loggedExerciseFor(item: PlanItem, exercise: Exercise | undefined): LoggedExercise {
@@ -120,4 +123,16 @@ const hasValue = (s: SetValues, type: TrackingType) =>
 export function fillFrom(s: SetValues, prev: SetValues | undefined, type: TrackingType): Partial<SetValues> | null {
   if (!prev || hasValue(s, type)) return null
   return { reps: prev.reps ?? null, weight: prev.weight ?? null, seconds: prev.seconds ?? null, distance: prev.distance ?? null }
+}
+
+/** A plan item with another exercise in its place: same targets when it is logged the same way. */
+export function swapPlanItem(item: PlanItem, oldType: TrackingType, e: Exercise): PlanItem {
+  if (oldType === e.trackingType) return { ...item, exerciseId: e.id }
+  return { ...item, exerciseId: e.id, trackingType: undefined, sets: defaultSets(e.trackingType, item.sets.length || 3) }
+}
+
+/** The same for an exercise of the workout being logged (only before any of its sets is done). */
+export function swapLoggedExercise(ex: LoggedExercise, e: Exercise): LoggedExercise {
+  const sets = ex.trackingType === e.trackingType ? ex.sets : loggedExerciseFor({ exerciseId: e.id, restSec: ex.restSec, note: '', sets: defaultSets(e.trackingType, ex.sets.length || 3) }, e).sets
+  return { ...ex, exerciseId: e.id, name: e.name, muscle: e.primaryMuscles[0] ?? '', trackingType: e.trackingType, sets }
 }

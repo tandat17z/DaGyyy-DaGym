@@ -1,53 +1,78 @@
 # DaGym
 
-## Project
+Personal gym tracker (sibling of DaFinance). Live: https://gym.tandat17z.workers.dev (behind Cloudflare
+Access). Runs standalone too: clone it and everything stays in your browser.
 
-**DaGym** — personal gym tracker, one app in the tandat17z ecosystem (sibling of DaFinance, same conventions). Worker `gym` → `gym.tandat17z.workers.dev`, private behind Cloudflare Access (no auth code here). Launched from the hub (`../../hub`) as a card in `hub/src/config/apps.ts`.
+## Features
 
-Never import code, types or env vars from sibling repos: the API is used over HTTP only, `src/lib/types.ts` mirrors its contract (`../api/src/apps/gym`).
+- **Programs**: several programs, each a list of workout days (e.g. Chest, Back, Legs) trained in
+  order on any date; no fixed weekly schedule. Each day: exercises with sets × kg × reps and rest.
+- **Home**: the current program, the next 3 workout days with progress rings, and a calendar of
+  what was actually trained.
+- **Workout**: one page per exercise (swipe left / right): target, rest and sets rings, quick
+  kg × reps logging, history. Rest timer with sound, screen kept on, autosave; when every set is
+  done a countdown opens the next exercise and, after the last one, finishes the workout. An
+  exercise can be swapped for a similar one (same muscle group) for that workout only.
+- **Progress**: workout history (editable) and statistics by day, week and muscle group, records.
+- **Exercises**: 870+ illustrated exercises (free-exercise-db) plus your own.
 
-## Language rules
+## Getting started (no server needed)
 
-- Code, comments, commits, docs, API fields and stored values (muscle keys, tracking types): English.
-- Conversation with the developer: Vietnamese. UI text in `src/locales/en.ts` (reference) + `vi.ts` (default); add every key to both. No hard-coded UI strings.
-
-## Tech stack
-
-- Vite + React 19 + TS + Tailwind v4, react-router-dom 7, Geist fonts. Charts are plain HTML/CSS. Dark only; tokens in `src/index.css` copied from the hub.
-- `src/i18n/` and `src/brand/` are copied as-is from DaFinance.
-- Data: central API `/v1/gym` (`src/lib/api.ts`, `src/lib/storage.ts` = cached GET hooks + writes that `invalidate()` prefixes). `worker/index.js` forwards `/api/*` to the API Worker.
-- Exercise dictionary: `public/data/exercises.json`, built by `npm run exercises` from free-exercise-db pinned to one commit; images served by jsDelivr. Custom exercises live in the API.
-- Live workout: `src/lib/session.ts` (context, hooks) + `src/components/SessionProvider.tsx` — kept in localStorage (`dagym.session`), timers stored as timestamps, debounced PUT autosave, rest alarm (beep + vibrate), screen wake lock.
-
-## Structure
-
-```
-src/
-├── App.tsx, main.tsx
-├── pages/       Today, Plan (+ day sheet), Templates (+ TemplateEdit, DayEdit), Workout, History (+ detail), Stats, Exercises (+ detail)
-├── components/  Layout (header like DaFinance), SessionBar (rest timer), ExerciseBlock, PlanEditor, WorkoutEditor, ExercisePicker, MuscleMap, charts, ui
-├── config/      muscles (keys, equipment…), colors (template colours), changelog
-├── lib/         api, storage, types, date, format, plan (resolve plan, records), exercises, session, sound, useStartWorkout
-```
-
-Weekday index: 0 = Monday … 6 = Sunday. A day's plan = its override (`/days`) or else the weekly schedule.
-
-## Local data
-
-| | demo (default) | real |
-|---|---|---|
-| frontend | `npm run dev` → :5176 | `npm run dev:real` → :5177 |
-| API | `npm run api:demo` → :8787 (local D1) | `npm run api:real` → :8789, production D1 via git-ignored `.claude/dev-real/` |
-
-Local D1: `npm run db:migrate:local` in `../api`.
-
-## Commands
+Requires Node.js 20+. Clone, then:
 
 ```bash
 npm install
-npm run dev
-npm run lint
-npm run build
+npm run dev                # http://localhost:5176 — standalone, no API, no sign-in
+npm run build:standalone   # → dist/, a static site for any host (SPA fallback to index.html)
 ```
 
-Before considering work done: `lint` and `build` pass; check mobile and desktop layouts.
+Standalone keeps everything in this browser (`localStorage`): nothing leaves your machine, and
+clearing site data or switching browsers loses it.
+
+## With the API (the hosted version)
+
+The hosted app stores data in a companion central API (a Cloudflare Worker with a D1 database, not
+in this repo, routes `/v1/gym/*`); `src/lib/types.ts` mirrors its contract. The API decides per
+user where data lives: the owner and approved users on the server, everyone else in their browser
+(same screens, same maths), with a button to ask the owner for server storage; once approved, the
+browser data is moved up. The browser calls `/api/*` on this same host and `worker/index.js`
+forwards only `/api/health` and `/api/v1/gym/*` to the API Worker, so one Access login covers the
+app and its data. The workout in progress is also kept in localStorage so a reload or a locked
+phone loses nothing.
+
+```bash
+npm run dev:demo   # http://localhost:5176, expects the API on http://localhost:8787 (npm run api:demo)
+npm run lint
+npm run build      # tsc -b && vite build → dist/
+```
+
+Settings are Vite env files: `.env.standalone`, `.env.demo` (local sample data), `.env.real` (local
+API bound to the real database — writes are real) and `.env.example`. No secrets belong in them:
+anything prefixed `VITE_` ends up in the browser bundle.
+
+## Deploy
+
+Copy `wrangler.example.jsonc` to `wrangler.jsonc` (git-ignored) and set the API host. One time, in
+the API repo (see its README, section "gym"):
+
+1. `npx wrangler d1 create gym`, then uncomment the `DB_GYM` block under `[env.production]` in
+   `wrangler.toml` with the printed id.
+2. Back up core, then `npx wrangler d1 migrations apply gym --remote --env production` and
+   `npx wrangler d1 migrations apply core --remote --env production` (registers the `gym` app).
+3. Deploy the API: `npx wrangler deploy --env production`.
+
+Then this app:
+
+```bash
+npm run build
+npx wrangler deploy
+```
+
+Put `gym.tandat17z.workers.dev` behind a Cloudflare Access application (same as DaFinance), then
+add that application's AUD tag to the API's comma-separated `ACCESS_AUD` secret
+(`npx wrangler secret put ACCESS_AUD --env production` in the API repo), otherwise every API call is
+rejected with 401.
+
+## Changelog
+
+In the app (version badge in the header) and in `src/config/changelog.ts`.

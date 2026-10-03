@@ -2,15 +2,17 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { toApiError } from '../lib/api'
 import { SessionContext, type SessionValue, type Stored, type SyncState } from '../lib/session'
 import { beep, unlockAudio } from '../lib/sound'
-import { deleteWorkout, putWorkout, workoutsChanged } from '../lib/storage'
+import { deleteWorkout, putWorkout, storeId, workoutsChanged } from '../lib/storage'
 import type { Workout } from '../lib/types'
 
-const STORAGE_KEY = 'dagym.session'
+// One workout in progress per store (the server, or one browser account), so two accounts on one
+// browser never share it.
+const storageKey = () => (storeId() === 'server' ? 'dagym.session' : `dagym.session.${storeId()}`)
 const SYNC_DELAY_MS = 3000
 
 function read(): Stored {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(storageKey())
     if (raw) {
       const s = JSON.parse(raw) as Stored
       if (s.workout?.status === 'active') return { workout: s.workout, rest: s.rest ?? null, setTimer: s.setTimer ?? null }
@@ -23,8 +25,8 @@ function read(): Stored {
 
 function write(s: Stored) {
   try {
-    if (s.workout) localStorage.setItem(STORAGE_KEY, JSON.stringify(s))
-    else localStorage.removeItem(STORAGE_KEY)
+    if (s.workout) localStorage.setItem(storageKey(), JSON.stringify(s))
+    else localStorage.removeItem(storageKey())
   } catch {
     // Not persisted; the session still works until the tab closes.
   }

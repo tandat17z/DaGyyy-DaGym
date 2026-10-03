@@ -1,6 +1,37 @@
 import { useEffect, useState } from 'react'
 import { type ApiError, apiFetch, toApiError } from './api'
-import type { CustomExercise, CustomExerciseInput, ExerciseStats, HistorySession, Records, Stats, Template, Workout } from './types'
+import { localRequest } from './localApi'
+import type { CustomExercise, CustomExerciseInput, ExerciseStats, HistorySession, Program, Records, Stats, Template, Workout } from './types'
+
+/**
+ * Where the data lives: the central API, or this browser (users without server storage, and the
+ * standalone build; see lib/localApi.ts). Both answer the same `/v1/gym` paths. The account gate
+ * (components/AccountGate.tsx) picks one with `selectStore()` before anything renders.
+ */
+export interface GymStore {
+  kind: 'server' | 'browser'
+  /** Email the browser data belongs to ('' for the server). */
+  owner: string
+  request: <T>(path: string, init?: RequestInit) => Promise<T>
+}
+
+export const serverStore: GymStore = { kind: 'server', owner: '', request: apiFetch }
+export const localStore = (owner: string): GymStore => ({ kind: 'browser', owner, request: (path, init) => localRequest(owner, path, init) })
+
+let store: GymStore = serverStore
+
+/** Switches the store; cached responses of the previous one are dropped. */
+export function selectStore(next: GymStore) {
+  if (store !== next) {
+    store = next
+    cache.clear()
+  }
+}
+
+const request = <T>(path: string, init?: RequestInit) => store.request<T>(path, init)
+
+/** Identifies the current store, e.g. to keep per-store state apart in localStorage. */
+export const storeId = () => (store.kind === 'server' ? 'server' : `u.${store.owner.toLowerCase()}`)
 
 // Tiny stale-while-revalidate layer: the last response of every GET path is kept in memory, shown
 // at once on the next visit and refreshed in the background. Writes call `invalidate(prefix)` so
@@ -42,7 +73,7 @@ export function useApi<T>(path: string | null, field: string): Resource<T> {
   useEffect(() => {
     if (!path) return
     let alive = true
-    apiFetch<Record<string, unknown>>(path).then(
+    request<Record<string, unknown>>(path).then(
       (body) => {
         const data = (field ? body[field] : body) as T
         cache.set(path, data)
@@ -66,14 +97,25 @@ export function useApi<T>(path: string | null, field: string): Resource<T> {
   }
 }
 
-const put = <T>(path: string, body: unknown) => apiFetch<T>(path, { method: 'PUT', body: JSON.stringify(body) })
-const del = (path: string) => apiFetch<void>(path, { method: 'DELETE' })
+const put = <T>(path: string, body: unknown) => request<T>(path, { method: 'PUT', body: JSON.stringify(body) })
+const del = (path: string) => request<void>(path, { method: 'DELETE' })
 
-// --- templates ---------------------------------------------------------------------------------
+// --- programs & templates (workout days) --------------------------------------------------------------------------
 
+export const usePrograms = () => useApi<Program[]>('/programs', 'programs')
 export const useTemplates = () => useApi<Template[]>('/templates', 'templates')
 
-export async function saveTemplate({ id, ...t }: Template) {
+export async function saveProgram({ id, updatedAt: _u, ...p }: Program & { updatedAt?: string }) {
+  await put(`/programs/${id}`, p)
+  invalidate('/programs')
+}
+/** Also deletes its workout days; logged workouts stay. */
+export async function deleteProgram(id: string) {
+  await del(`/programs/${id}`)
+  invalidate('/programs', '/templates')
+}
+
+export async function saveTemplate({ id, updatedAt: _u, ...t }: Template & { updatedAt?: string }) {
   await put(`/templates/${id}`, t)
   invalidate('/templates')
 }
@@ -90,9 +132,9 @@ export const useWorkouts = (q: { from?: string; to?: string; status?: 'active' |
 }
 export const useWorkout = (id: string | undefined) => useApi<Workout>(id ? `/workouts/${id}` : null, 'workout')
 
-/** Saves without invalidating (the live screen autosaves often); call `workoutsChanged()` when done. */
-export const putWorkout = ({ id, totalSets: _s, totalReps: _r, volumeKg: _v, ...w }: Workout, init: RequestInit = {}) =>
-  apiFetch<{ workout: Workout }>(`/workouts/${id}`, { ...init, method: 'PUT', body: JSON.stringify(w) })
+/** Saves without invalidating (the live screen autosaves often); call `workoutsChanged()` when done. Read-only fields are left out (the API rejects unknown keys). */
+export const putWorkout = ({ id, totalSets: _s, totalReps: _r, volumeKg: _v, updatedAt: _u, ...w }: Workout & { updatedAt?: string }, init: RequestInit = {}) =>
+  request<{ workout: Workout }>(`/workouts/${id}`, { ...init, method: 'PUT', body: JSON.stringify(w) })
 
 export const workoutsChanged = () => invalidate('/workouts', '/stats', '/exercise-stats', '/exercise-history')
 

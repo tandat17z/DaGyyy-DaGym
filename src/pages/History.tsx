@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ApiNotice } from '../components/ApiNotice'
 import { ExerciseImage } from '../components/ExerciseImage'
 import { IconChevronLeft, IconCopy, IconEdit, IconPlay, IconTrash, IconTrophy } from '../components/icons'
-import { PageHeader } from '../components/Layout'
+import { PageHeader, SectionHeader } from '../components/Layout'
 import { Button, Card, Empty, Label, NumberInput, Skeleton, StatTile } from '../components/ui'
 import { WorkoutEditor } from '../components/WorkoutEditor'
 import { WorkoutRow } from '../components/WorkoutRow'
@@ -12,6 +12,7 @@ import { cn } from '../lib/cn'
 import { useExercises } from '../lib/exercises'
 import { useFormat } from '../lib/format'
 import { itemsFromWorkout, recordSets, workoutTotals } from '../lib/plan'
+import { useCurrentProgram } from '../lib/programs'
 import { deleteWorkout, saveTemplate, saveWorkout, useExerciseStats, useWorkout, useWorkouts } from '../lib/storage'
 import type { Workout } from '../lib/types'
 import { useStartWorkout } from '../lib/useStartWorkout'
@@ -28,12 +29,12 @@ export function History() {
   }
   return (
     <>
-      <PageHeader title={t('history.title')} sub={workouts.data ? t('history.count', { count: workouts.data.length }) : undefined} />
+      <SectionHeader section="progress" sub={workouts.data ? t('history.count', { count: workouts.data.length }) : undefined} />
       {workouts.error && <ApiNotice error={workouts.error} onRetry={workouts.reload} />}
       {workouts.loading && !workouts.data ? (
         <Skeleton className="h-64" />
       ) : !workouts.data?.length ? (
-        <Empty action={<Link to="/" className="text-sm text-accent hover:underline">{t('nav.today')}</Link>}>{t('history.empty')}</Empty>
+        <Empty action={<Link to="/" className="text-sm text-accent hover:underline">{t('dashboard.title')}</Link>}>{t('history.empty')}</Empty>
       ) : (
         [...groups].map(([month, list]) => (
           <Card key={month} title={formatMonth(`${month}-01`)} action={<span className="text-xs text-subtle">{t('history.count', { count: list.length })}</span>}>
@@ -66,6 +67,7 @@ function Detail({ workout }: { workout: Workout }) {
   const navigate = useNavigate()
   const { byId } = useExercises()
   const start = useStartWorkout()
+  const program = useCurrentProgram()
   const stats = useExerciseStats(workout.exercises.map((e) => e.exerciseId), workout.id)
   const [editing, setEditing] = useState<Workout | null>(null)
   const [error, setError] = useState<ApiError | null>(null)
@@ -205,7 +207,7 @@ function Detail({ workout }: { workout: Workout }) {
             onClick={() =>
               void run(async () => {
                 const id = crypto.randomUUID()
-                await saveTemplate({ id, name: w.name || t('templates.untitled'), note: '', color: 'c1', items: itemsFromWorkout(w), position: 999 })
+                await saveTemplate({ id, programId: program.current?.id ?? null, name: w.name || t('templates.untitled'), note: '', color: 'c1', items: itemsFromWorkout(w), position: program.days.length })
                 setSavedTemplate(id)
               })
             }
