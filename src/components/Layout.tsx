@@ -1,18 +1,18 @@
 import { useEffect, type ReactNode } from 'react'
+import { LOCALES, type Locale } from '@tada/kit/i18n'
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { AppBrand } from '@tada/kit/brand'
+import { AppHeader, AppMain, headerTabClass } from '@tada/kit/layout'
 import { changelog } from '../config/changelog'
-import { API_ACCOUNT_URL, API_ME_URL, STANDALONE } from '../lib/api'
+import { API_ACCOUNT_URL, API_FEEDBACK_URL, API_ME_URL, STANDALONE } from '../lib/api'
 import { invalidate } from '../lib/storage'
 import { cn } from '../lib/cn'
 import { useSession } from '../lib/session'
-import { LanguageSwitch, useI18n } from '../locales'
+import { useI18n } from '../locales'
 import { DataModeBadge } from './DataModeBadge'
+import { SettingsLauncher } from './Settings'
 import { SessionBar } from './SessionBar'
 import { StorageNotice } from './StorageNotice'
-
-/** Workspace hub for the back link; hidden when unset (standalone copies). */
-const WORKSPACE_URL = import.meta.env.VITE_WORKSPACE_URL as string | undefined
 
 // Three sections: Home (dashboard), Train (programs, their workout days, the exercise dictionary)
 // and Progress (history, statistics), plus Workout: the workout in progress, or how to start one.
@@ -35,10 +35,32 @@ const SECTIONS = {
   ],
 } as const
 
+/** The dumbbell of public/icon.svg, in the logo mark's colour. */
+const DumbbellIcon = () => (
+  <svg viewBox="8 14 48 36" className="h-3.5 w-[18px]" fill="currentColor" aria-hidden="true">
+    <rect x="10" y="22" width="7" height="20" rx="2" />
+    <rect x="18" y="17" width="7" height="30" rx="2" />
+    <rect x="39" y="17" width="7" height="30" rx="2" />
+    <rect x="47" y="22" width="7" height="20" rx="2" />
+    <rect x="25" y="29" width="14" height="6" rx="1" />
+  </svg>
+)
+
 export function Layout() {
-  const { t, locale } = useI18n()
+  const { t, locale, setLocale } = useI18n()
   const { pathname } = useLocation()
   const { workout } = useSession()
+  // Language picked in the account menu: switch in place instead of following a link.
+  useEffect(() => {
+    const onLanguage = (e: Event) => {
+      const code = (e as CustomEvent<{ code: string }>).detail.code
+      if (!(code in LOCALES)) return
+      e.preventDefault()
+      setLocale(code as Locale)
+    }
+    window.addEventListener('tdz-account:language', onLanguage)
+    return () => window.removeEventListener('tdz-account:language', onLanguage)
+  }, [setLocale])
   // A new page starts at the top (BrowserRouter keeps the scroll position otherwise).
   useEffect(() => {
     window.scrollTo(0, 0)
@@ -48,56 +70,40 @@ export function Layout() {
 
   return (
     <div className="min-h-dvh">
-      {/* One slim sticky header like DaFinance. Phone / tablet: row 1 = brand + account, row 2 = tabs.
-          lg: a single row. xl: tabs centred on the page. */}
-      <header className="sticky top-0 z-20 border-b border-border bg-bg/85 pt-[env(safe-area-inset-top)] backdrop-blur">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-0 px-4 pt-1.5 sm:px-6 lg:flex-nowrap lg:gap-x-4 lg:pt-0 xl:grid xl:grid-cols-[1fr_auto_1fr]">
-          <div className="order-1 flex shrink-0 items-center gap-2 whitespace-nowrap sm:gap-3 lg:py-2">
-            {WORKSPACE_URL && (
-              <>
-                <a href={WORKSPACE_URL} aria-label={t('app.backToWorkspace')} className="font-mono text-xs text-subtle hover:text-fg">
-                  ←<span className="hidden 2xl:inline"> {t('app.workspace')}</span>
-                </a>
-                <span className="hidden h-4 w-px bg-border-strong sm:block" />
-              </>
-            )}
-            <AppBrand name="DaGym" logo={<img src="/icon.svg" alt="" className="size-6 rounded-md" />} changelog={changelog} nameClassName="hidden sm:inline" locale={locale} />
+      <AppHeader
+        brand={
+          <>
+            <AppBrand name="DaGym" shortName="DaGyyy" icon={<DumbbellIcon />} changelog={changelog} nameClassName="hidden sm:inline" locale={locale} />
             <DataModeBadge />
-          </div>
-          <nav aria-label={t('nav.label')} className="order-3 flex w-full justify-center sm:gap-1 lg:order-2 lg:mx-auto lg:w-auto xl:justify-self-center">
+          </>
+        }
+        navProps={{ role: 'navigation', 'aria-label': t('nav.label') }}
+        nav={
+          <>
             {NAV.map((n) => (
-              <NavLink
-                key={n.to}
-                to={n.to}
-                className={cn('flex-1 border-b-2 px-2 py-1.5 text-center text-sm font-medium whitespace-nowrap transition-colors sm:px-5 lg:flex-none lg:px-3.5 lg:py-[1.125rem] xl:px-5', isActive(n) ? 'border-accent text-fg' : 'border-transparent text-muted hover:text-fg')}
-              >
+              <NavLink key={n.to} to={n.to} className={headerTabClass(isActive(n))}>
                 {t(n.label)}
               </NavLink>
             ))}
             {/* Always there; the dot shows a workout in progress. */}
-            <NavLink
-              to="/workout"
-              className={cn(
-                'flex flex-1 items-center justify-center gap-1.5 border-b-2 px-2 py-1.5 text-sm font-medium whitespace-nowrap transition-colors sm:px-5 lg:flex-none lg:px-3.5 lg:py-[1.125rem] xl:px-5',
-                live ? 'border-accent text-fg' : 'border-transparent text-muted hover:text-fg',
-                workout && !live && 'text-accent',
-              )}
-            >
+            <NavLink to="/workout" className={headerTabClass(live, cn('flex items-center justify-center gap-1.5', workout && !live && 'text-accent'))}>
               {workout && <span className="size-1.5 animate-pulse rounded-full bg-accent" />}
               {t('nav.workout')}
             </NavLink>
-          </nav>
-          <div className="order-2 ml-auto flex shrink-0 items-center gap-2 max-sm:[&_summary>span:last-of-type]:hidden max-sm:[&_summary>svg]:hidden sm:gap-3 lg:order-3 lg:py-2 xl:justify-self-end">
-            <LanguageSwitch label={t('lang.label')} />
-            {!STANDALONE && <tdz-account key={locale} lang={locale} me-url={API_ME_URL} account-url={API_ACCOUNT_URL} />}
-          </div>
-        </div>
-      </header>
+          </>
+        }
+        account={
+          <>
+            <SettingsLauncher button={STANDALONE} />
+            {!STANDALONE && <tdz-account key={locale} lang={locale} me-url={API_ME_URL} account-url={API_ACCOUNT_URL} feedback-url={API_FEEDBACK_URL} languages={Object.keys(LOCALES).join(';')} settings />}
+          </>
+        }
+      />
 
-      <main className="mx-auto grid max-w-6xl grid-cols-[minmax(0,1fr)] gap-5 px-4 pt-4 pb-32 sm:px-6 sm:pt-6">
+      <AppMain className="pb-32">
         <StorageNotice onMoved={() => invalidate('/')} />
         <Outlet />
-      </main>
+      </AppMain>
 
       <div className="pointer-events-none fixed inset-x-0 bottom-0 z-30 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
         <SessionBar />

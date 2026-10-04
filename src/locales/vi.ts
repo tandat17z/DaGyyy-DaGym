@@ -2,8 +2,9 @@ import type { MessageKey } from './en'
 
 export const vi: Record<MessageKey, string> = {
   'lang.label': 'Ngôn ngữ',
-  'app.workspace': 'Workspace',
-  'app.backToWorkspace': 'Về Workspace',
+  'settings.open': 'Cài đặt',
+  'settings.title': 'Cài đặt',
+  'settings.close': 'Đóng',
 
   'nav.label': 'Điều hướng chính',
   'nav.home': 'Trang chủ',
@@ -346,13 +347,7 @@ export const vi: Record<MessageKey, string> = {
   'storage.rejected': 'Yêu cầu lưu trên server chưa được duyệt. Dữ liệu vẫn nằm trong trình duyệt này; bạn có thể xin lại.',
   'storage.revoked': 'Tài khoản này đã bị tắt lưu trên server. Dữ liệu đã được chép về trình duyệt này (bản trên server vẫn giữ, chỉ đọc).',
   'storage.request': 'Xin lưu trên server',
-  'storage.message': 'Lời nhắn (không bắt buộc)',
-  'storage.messagePlaceholder': 'VD: bạn là ai, cần để làm gì',
-  'storage.send': 'Gửi yêu cầu',
-  'storage.sending': 'Đang gửi…',
-  'storage.cancel': 'Huỷ',
   'storage.hide': 'Ẩn',
-  'storage.cooldown': 'Bạn có thể xin lại sau một ngày kể từ lần quyết định trước.',
   'storage.granted': 'Đã bật lưu trên server. Trình duyệt này còn {programs} giáo án và {workouts} buổi tập — hãy chuyển lên server.',
   'storage.move': 'Chuyển lên server',
   'storage.moving': 'Đang chuyển…',

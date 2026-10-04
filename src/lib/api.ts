@@ -11,6 +11,8 @@ export const API_LOGIN_URL = `${API_URL}/health`
 export const API_ME_URL = `${API_URL}/v1/gym/me`
 /** Account + storage mode (also read by the account menu). */
 export const API_ACCOUNT_URL = `${API_URL}/v1/gym/account`
+/** Rating & feedback (the account menu's form). */
+export const API_FEEDBACK_URL = `${API_URL}/v1/gym/feedback`
 
 export class ApiError extends Error {
   status: number

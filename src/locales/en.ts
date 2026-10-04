@@ -1,8 +1,9 @@
 /** Reference dictionary: every other language must have exactly these keys. */
 export const en = {
   'lang.label': 'Language',
-  'app.workspace': 'Workspace',
-  'app.backToWorkspace': 'Back to Workspace',
+  'settings.open': 'Settings',
+  'settings.title': 'Settings',
+  'settings.close': 'Close',
 
   'nav.label': 'Main navigation',
   'nav.home': 'Home',
@@ -345,13 +346,7 @@ export const en = {
   'storage.rejected': 'Your request for server storage was not approved. Your data stays in this browser; you can ask again.',
   'storage.revoked': 'Server storage was turned off for this account. Your data was copied into this browser (the server copy is kept, read-only).',
   'storage.request': 'Ask for server storage',
-  'storage.message': 'Message (optional)',
-  'storage.messagePlaceholder': 'e.g. who you are, why you need it',
-  'storage.send': 'Send request',
-  'storage.sending': 'Sending…',
-  'storage.cancel': 'Cancel',
   'storage.hide': 'Hide',
-  'storage.cooldown': 'You can ask again one day after the last decision.',
   'storage.granted': 'Server storage is on. This browser still holds {programs} programs and {workouts} workouts — move them to the server.',
   'storage.move': 'Move to the server',
   'storage.moving': 'Moving…',

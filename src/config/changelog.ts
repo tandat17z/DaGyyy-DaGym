@@ -3,6 +3,18 @@ import type { ChangelogEntry } from '@tada/kit/brand'
 /** Newest first. The first entry is the version shown in the header: add a new one on every release. */
 export const changelog: ChangelogEntry[] = [
   {
+    version: '0.3.0',
+    date: '2026-10-04',
+    changes: [
+      { kind: 'added', text: { en: 'Account menu like DaFinance: rating and feedback, language switch, Settings; asking for server storage uses the same request form', vi: 'Menu tài khoản như DaFinance: đánh giá và góp ý, đổi ngôn ngữ, Cài đặt; xin lưu trên server dùng chung form yêu cầu' } },
+      { kind: 'added', text: { en: 'Light and dark appearance in Settings; the choice and the current program are kept on the server when your data lives there', vi: 'Giao diện sáng và tối trong Cài đặt; lựa chọn này và giáo án đang dùng được lưu trên server khi dữ liệu nằm ở đó' } },
+      { kind: 'added', text: { en: 'New logo mark (icon and short name on a tinted tile), home-screen icon and the shared page layout, as in DaFinance', vi: 'Logo mới (icon và tên gọn trên nền xanh), icon màn hình chính và khung giao diện dùng chung, như DaFinance' } },
+      { kind: 'changed', text: { en: 'The page is as wide as DaFinance; the tab title is the short name', vi: 'Trang rộng bằng DaFinance; tiêu đề tab là tên gọn' } },
+      { kind: 'changed', text: { en: 'A private app shows nothing to users without access', vi: 'App private không hiện gì với người dùng chưa được cấp quyền' } },
+      { kind: 'changed', text: { en: 'Removed the back link to the Workspace and the separate language switch', vi: 'Bỏ liên kết về Workspace và nút đổi ngôn ngữ riêng' } },
+    ],
+  },
+  {
     version: '0.2.0',
     date: '2026-10-03',
     changes: [

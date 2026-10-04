@@ -12,8 +12,8 @@ git-ignored — read it when present.
   companion central API (`/v1/gym`). The API decides per user where data lives: the owner and
   approved users on the server, everyone else in the browser, with a request for server storage.
 
-It can be launched from a Workspace hub (`VITE_WORKSPACE_URL`, header "← Workspace"; hidden when unset).
-The header shows the shared `<tdz-account>` menu (`@tada/kit/account-menu`, imported in `main.tsx`);
+It can be launched from a Workspace hub (a card there; the app has no link back).
+The header shows the shared `<tdz-account>` menu (`@tada/kit/account-menu`, imported in `main.tsx`): language, rating & feedback, Settings (drawer: language, appearance, app extras);
 its `account-url` shows where data is stored and sends the storage request.
 
 Never import code, types or env vars from sibling repos: the API is used over HTTP only, `src/lib/types.ts` mirrors its contract.
@@ -38,7 +38,7 @@ This repository is public. Before every commit:
 
 ## Tech stack
 
-- Vite + React 19 + TS + Tailwind v4, react-router-dom 7, Geist fonts. Charts are plain HTML/CSS. Dark only; colour tokens from `@tada/kit/tokens.css` (imported in `src/index.css`).
+- Vite + React 19 + TS + Tailwind v4, react-router-dom 7, Geist fonts. Charts are plain HTML/CSS. Dark by default, light in Settings (`@tada/kit/theme`, a synced setting); colour tokens from `@tada/kit/tokens.css` (imported in `src/index.css`).
 - Language (`@tada/kit/i18n`, instance in `src/locales/index.ts`), `AppBrand` (`@tada/kit/brand`) and `AccountGate` (`@tada/kit/account`) come from the kit.
 - Data: every read and write goes through the current `GymStore` (`src/lib/storage.ts`: cached GET hooks + writes that `invalidate()` prefixes). `serverStore` calls the API (`src/lib/api.ts`); `localStore(email)` answers the same `/v1/gym` paths from localStorage (`src/lib/localApi.ts`, `dagym.u.<email>.*`, same maths as the API). `AccountGate` reads `GET /v1/gym/account` (`src/lib/account.ts`) and selects the store: `cloud` → server, `local` → browser, `readonly` (revoked) → server data copied into the browser once (`src/lib/sync.ts`). `StorageNotice` asks for server storage and, after approval, moves browser data up with `POST /v1/gym/import`. The API enforces all of this; the frontend only follows it.
 - Hosted: `worker/index.js` (`createApiProxy` from `@tada/kit/proxy`) forwards only `/api/health` and `/api/v1/gym/*` to the API Worker (service binding) with the Access JWT, and refuses cross-site writes.
@@ -52,12 +52,12 @@ This repository is public. Before every commit:
 src/
 ├── App.tsx, main.tsx
 ├── pages/       Dashboard, Programs (list, detail, workout-day edit), Day (day list + swipeable exercise pages, template or live), History (+ detail), Stats, Exercises (+ detail)
-├── components/  Layout (tabs Home / Train / Progress / Workout in the header, SectionHeader = sub-tabs), AccountGate, StorageNotice, SessionBar (rest timer), Ring, SwapSheet (similar exercises), ExerciseBlock, PlanEditor, WorkoutEditor, ExercisePicker, MuscleMap, charts, ui
+├── components/  Layout (tabs Home / Train / Progress / Workout in the header, SectionHeader = sub-tabs), AccountGate, StorageNotice, Settings (drawer), SettingsSync, SessionBar (rest timer), Ring, SwapSheet (similar exercises), ExerciseBlock, PlanEditor, WorkoutEditor, ExercisePicker, MuscleMap, charts, ui
 ├── config/      muscles (keys, equipment…), colors (template colours), changelog
-├── lib/         api, account, storage (GymStore), localApi, sync, types, date, format, plan (items, records), progress (day items, %, current day), programs (current program), exercises, session, sound, useStartWorkout, useDragSort
+├── lib/         api, account, storage (GymStore), localApi, sync, types, date, format, plan (items, records), progress (day items, %, current day), programs (current program), settings (synced by SettingsSync), exercises, session, sound, useStartWorkout, useDragSort
 ```
 
-No fixed schedule: a user has several programs (`/programs`); a template is one workout day of a program (`programId`, in `position` order), trained in turn on any date. The day to train is `currentDay()` (in progress, else trained today but unfinished, else the next one). The dashboard's current program is chosen per device (`dagym.program`), else the program of the latest workout. The calendar shows only logged workouts. The API's `/schedule` and `/days` are not used. Routes: `/day/:templateId[/:index]` before starting, `/workout[/:index]` while training. Weekday index: 0 = Monday … 6 = Sunday.
+No fixed schedule: a user has several programs (`/programs`); a template is one workout day of a program (`programId`, in `position` order), trained in turn on any date. The day to train is `currentDay()` (in progress, else trained today but unfinished, else the next one). The dashboard's current program is a setting (`dagym.settings`, synced to `/v1/gym/settings` when data is on the server), else the program of the latest workout. The calendar shows only logged workouts. The API's `/schedule` and `/days` are not used. Routes: `/day/:templateId[/:index]` before starting, `/workout[/:index]` while training. Weekday index: 0 = Monday … 6 = Sunday.
 
 ## Modes
 

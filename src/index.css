@@ -1,5 +1,5 @@
 @import 'tailwindcss';
-/* Colour tokens shared by the tandat17z apps (and the Tailwind theme for them). Dark only for now. */
+/* Colour tokens shared by the tandat17z apps (and the Tailwind theme for them). Dark by default, light via data-theme (@tada/kit/theme). */
 @import '@tada/kit/tokens.css';
 
 @theme inline {
@@ -32,10 +32,6 @@
     border-radius: 4px;
   }
 
-  input,
-  select {
-    color-scheme: dark;
-  }
 }
 
 @layer components {
