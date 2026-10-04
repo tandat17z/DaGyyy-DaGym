@@ -37,7 +37,7 @@ const SECTIONS = {
 
 /** The dumbbell of public/icon.svg, in the logo mark's colour. */
 const DumbbellIcon = () => (
-  <svg viewBox="8 14 48 36" className="h-3.5 w-[18px]" fill="currentColor" aria-hidden="true">
+  <svg viewBox="8 14 48 36" fill="currentColor" aria-hidden="true">
     <rect x="10" y="22" width="7" height="20" rx="2" />
     <rect x="18" y="17" width="7" height="30" rx="2" />
     <rect x="39" y="17" width="7" height="30" rx="2" />
